@@ -13,10 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function AuthButtons() {
   const { data: session, isPending } = useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -53,7 +55,7 @@ export function AuthButtons() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image || undefined} alt={user.name || "User"} />
+              <AvatarImage src={user.image || undefined} alt={user.name || t('user')} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </Button>
@@ -75,7 +77,7 @@ export function AuthButtons() {
           <DropdownMenuItem asChild>
             <Link href="/dashboard">
               <User className="mr-2 h-4 w-4" />
-              Dashboard
+              {t('dashboard')}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -84,7 +86,7 @@ export function AuthButtons() {
             disabled={isSigningOut}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            {isSigningOut ? "Signing out..." : "Sign out"}
+            {isSigningOut ? t('signingOut') : t('logout')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -96,13 +98,13 @@ export function AuthButtons() {
       <Button asChild variant="ghost" size="sm">
         <Link href="/sign-in">
           <LogIn className="mr-2 h-4 w-4" />
-          Sign In
+          {t('login')}
         </Link>
       </Button>
       <Button asChild size="sm">
         <Link href="/sign-up">
           <UserPlus className="mr-2 h-4 w-4" />
-          Sign Up
+          {t('register')}
         </Link>
       </Button>
     </div>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Parkinsans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { CartProvider } from "@/components/providers/cart-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,10 +21,12 @@ const parkinsans = Parkinsans({
 });
 
 export const metadata: Metadata = {
-  title: "Codeguide Starter Fullstack",
+  title: "Restoran Rz - Manajemen Restoran Modern",
   description:
-    "A modern Next.js starter with TypeScript, TailwindCSS, shadcn/ui, Better Auth, and Drizzle ORM",
+    "Sistem manajemen restoran dengan pemesanan online, stok, dan kasir.",
 };
+
+import { LanguageProvider } from "@/components/providers/language-provider";
 
 export default function RootLayout({
   children,
@@ -40,7 +44,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <LanguageProvider>
+            <CartProvider>
+              {children}
+              <Toaster />
+            </CartProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

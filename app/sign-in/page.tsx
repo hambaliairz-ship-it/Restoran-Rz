@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { signIn } from "@/lib/auth-client";
 import { Loader2 } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 export default function SignInPage() {
     const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const router = useRouter();
+    const { t } = useLanguage();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -30,12 +32,12 @@ export default function SignInPage() {
             });
 
             if (result.error) {
-                setError(result.error.message || "Sign in failed");
+                setError(result.error.message || t('signInFailed'));
             } else {
                 router.push("/dashboard");
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError(t('unexpectedError'));
         } finally {
             setIsLoading(false);
         }
@@ -45,9 +47,9 @@ export default function SignInPage() {
         <div className="min-h-screen flex items-center justify-center bg-background px-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
+                    <CardTitle className="text-2xl font-bold">{t('signInTitle')}</CardTitle>
                     <CardDescription>
-                        Enter your email and password to access your account
+                        {t('signInDesc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -58,11 +60,11 @@ export default function SignInPage() {
                             </Alert>
                         )}
                         <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t('email')}</Label>
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="Enter your email"
+                                placeholder={t('enterEmail')}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -70,11 +72,11 @@ export default function SignInPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{t('password')}</Label>
                             <Input
                                 id="password"
                                 type="password"
-                                placeholder="Enter your password"
+                                placeholder={t('enterPassword')}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -85,19 +87,19 @@ export default function SignInPage() {
                             {isLoading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Signing in...
+                                    {t('signingIn')}
                                 </>
                             ) : (
-                                "Sign In"
+                                t('signInTitle')
                             )}
                         </Button>
                     </form>
                 </CardContent>
                 <CardFooter className="text-center">
                     <p className="text-sm text-muted-foreground">
-                        Don&apos;t have an account?{" "}
+                        {t('dontHaveAccount')}{" "}
                         <Link href="/sign-up" className="font-medium text-primary hover:underline">
-                            Sign up
+                            {t('signUpLink')}
                         </Link>
                     </p>
                 </CardFooter>

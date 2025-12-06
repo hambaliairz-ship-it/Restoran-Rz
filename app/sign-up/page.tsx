@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { signUp } from "@/lib/auth-client";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useLanguage } from "@/components/providers/language-provider";
 
 const signUpSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -36,6 +37,7 @@ export default function SignUpPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const router = useRouter();
+    const { t } = useLanguage();
 
     const form = useForm<SignUpForm>({
         resolver: zodResolver(signUpSchema),
@@ -59,12 +61,12 @@ export default function SignUpPage() {
             });
 
             if (result.error) {
-                setError(result.error.message || "Sign up failed");
+                setError(result.error.message || t('signUpFailed'));
             } else {
                 router.push("/dashboard");
             }
         } catch (err) {
-            setError("An unexpected error occurred");
+            setError(t('unexpectedError'));
         } finally {
             setIsLoading(false);
         }
@@ -74,9 +76,9 @@ export default function SignUpPage() {
         <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+                    <CardTitle className="text-2xl font-bold">{t('signUpTitle')}</CardTitle>
                     <CardDescription>
-                        Enter your details to create a new account
+                        {t('signUpDesc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -93,10 +95,10 @@ export default function SignUpPage() {
                                 name="name"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Full Name</FormLabel>
+                                        <FormLabel>{t('fullName')}</FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Enter your full name"
+                                                placeholder={t('enterFullName')}
                                                 {...field}
                                                 disabled={isLoading}
                                             />
@@ -111,11 +113,11 @@ export default function SignUpPage() {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>{t('email')}</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="email"
-                                                placeholder="Enter your email"
+                                                placeholder={t('enterEmail')}
                                                 {...field}
                                                 disabled={isLoading}
                                             />
@@ -130,12 +132,12 @@ export default function SignUpPage() {
                                 name="password"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Password</FormLabel>
+                                        <FormLabel>{t('password')}</FormLabel>
                                         <FormControl>
                                             <div className="relative">
                                                 <Input
                                                     type={showPassword ? "text" : "password"}
-                                                    placeholder="Create a strong password"
+                                                    placeholder={t('createStrongPassword')}
                                                     {...field}
                                                     disabled={isLoading}
                                                     className="pr-10"
@@ -166,12 +168,12 @@ export default function SignUpPage() {
                                 name="confirmPassword"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Confirm Password</FormLabel>
+                                        <FormLabel>{t('confirmPassword')}</FormLabel>
                                         <FormControl>
                                             <div className="relative">
                                                 <Input
                                                     type={showConfirmPassword ? "text" : "password"}
-                                                    placeholder="Confirm your password"
+                                                    placeholder={t('confirmYourPassword')}
                                                     {...field}
                                                     disabled={isLoading}
                                                     className="pr-10"
@@ -201,10 +203,10 @@ export default function SignUpPage() {
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating account...
+                                        {t('creatingAccount')}
                                     </>
                                 ) : (
-                                    "Create Account"
+                                    t('signUpTitle')
                                 )}
                             </Button>
                         </form>
@@ -212,9 +214,9 @@ export default function SignUpPage() {
                 </CardContent>
                 <CardFooter className="text-center">
                     <p className="text-sm text-muted-foreground">
-                        Already have an account?{" "}
+                        {t('alreadyHaveAccount')}{" "}
                         <Link href="/sign-in" className="font-medium text-primary hover:underline">
-                            Sign in
+                            {t('signInLink')}
                         </Link>
                     </p>
                 </CardFooter>
