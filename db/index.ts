@@ -1,5 +1,7 @@
 import 'dotenv/config';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
+import { drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
+import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'dotenv';
@@ -17,4 +19,11 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-export const db = drizzle(process.env.DATABASE_URL!, { schema });
+const databaseUrl = process.env.DATABASE_URL!;
+
+// Use Neon serverless driver for production (Vercel), pg for local development
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+
+export const db = isProduction
+  ? drizzleNeon(neon(databaseUrl), { schema })
+  : drizzlePg(databaseUrl, { schema });
