@@ -327,3 +327,4 @@ This starter is optimized for AI coding agents:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 # codeguide-starter-fullstack
+
