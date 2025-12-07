@@ -21,8 +21,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 const databaseUrl = process.env.DATABASE_URL!;
 
-// Use Neon serverless driver for production (Vercel), pg for local development
-const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+// Use Neon serverless driver for production (Vercel/Netlify), pg for local development
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.NETLIFY;
 
 export const db = isProduction
   ? drizzleNeon(neon(databaseUrl), { schema })
