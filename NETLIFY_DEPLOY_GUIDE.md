@@ -38,7 +38,7 @@ NEXT_PUBLIC_BETTER_AUTH_URL = "https://restoran-rz.netlify.app"
 #### Catatan Penting:
 - `BETTER_AUTH_SECRET` harus berupa string acak yang sangat panjang (minimal 32 karakter) dan tidak boleh dibagikan
 - `DATABASE_URL` harus merupakan URL database PostgreSQL produksi Anda
-- Gantilah `restoran-rz.netlify.app` dengan nama domain Netlify Anda yang sebenarnya
+- Domain produksi yang digunakan adalah `https://restoran-rz.netlify.app`
 
 ### 4. Build dan Deploy
 Setelah semua konfigurasi selesai:
