@@ -4,12 +4,12 @@ import { db } from "@/db"; // your drizzle instance
 import { account, session, user, verification } from "@/db/schema/auth";
 
 export const auth = betterAuth({
-    secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: process.env.BETTER_AUTH_URL,
+    secret: process.env.BETTER_AUTH_SECRET || "",
+    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
     trustedOrigins: [
         process.env.BETTER_AUTH_URL || "http://localhost:3000",
         process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
-        "https://rstoran-rz.netlify.app",
+        "https://restoran-rz.netlify.app",  // Domain produksi Anda
         "http://localhost:3000",
         "http://localhost:3001",
     ],

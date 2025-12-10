@@ -4,3 +4,30 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[functions]
+  # Konfigurasi untuk fungsi serverless
+  included_files = [".env"]
+  node_bundler = "esbuild"
+
+# Template environment variables untuk Netlify UI
+[template.environment]
+  DATABASE_URL = "Your PostgreSQL database URL"
+  BETTER_AUTH_SECRET = "Your Better Auth secret key"
+  BETTER_AUTH_URL = "https://restoran-rz.netlify.app"
+  NEXT_PUBLIC_BETTER_AUTH_URL = "https://restoran-rz.netlify.app"
+
+# Konfigurasi headers keamanan
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Redirect untuk menangani routing Next.js
+[[redirects]]
+  from = "/api/auth/*"
+  to = "/api/auth/:splat"
+  status = 200
+  force = true
