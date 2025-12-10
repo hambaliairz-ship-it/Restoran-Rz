@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
 import { 
   Sheet, 
   SheetContent, 
@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { createOrder, type MenuCategory, type MenuItemWithCategory } from "./actions"
 import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
+import useEmblaCarousel from "embla-carousel-react"
 
 interface MenuItem {
     id: string;
@@ -110,13 +111,16 @@ export function MenuList({ categories, items }: MenuListProps) {
     };
 
     return (
-        <div className="flex flex-col min-h-screen pb-24 bg-background">
+        <div className="flex flex-col min-h-screen pb-24 bg-background overflow-x-hidden">
             {/* Category Filter */}
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b p-4 overflow-x-auto flex gap-2 no-scrollbar">
+            <div 
+                className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-3 sm:px-4 py-2.5 sm:py-3 overflow-x-auto flex gap-1.5 sm:gap-2 justify-start lg:justify-center" 
+                style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
                 <Button 
                     variant={activeCategory === "all" ? "default" : "outline"} 
                     onClick={() => setActiveCategory("all")}
-                    className="rounded-full whitespace-nowrap"
+                    className="rounded-full whitespace-nowrap text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4 shrink-0"
                 >
                     Semua
                 </Button>
@@ -125,64 +129,31 @@ export function MenuList({ categories, items }: MenuListProps) {
                         key={cat.id}
                         variant={activeCategory === cat.id ? "default" : "outline"}
                         onClick={() => setActiveCategory(cat.id)}
-                        className="rounded-full whitespace-nowrap"
+                        className="rounded-full whitespace-nowrap text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4 shrink-0"
                     >
                         {cat.name}
                     </Button>
                 ))}
             </div>
 
-            {/* Category Description */}
-            <div className="py-6 px-4 text-center">
-                <p className="text-muted-foreground text-lg italic font-medium">
-                    {categoryDescription}
-                </p>
-            </div>
-
-            {/* Menu Grid */}
-            <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredItems.map((item) => (
-                    <Card key={item.id} className="overflow-hidden flex flex-col">
-                        <div className="h-40 bg-muted flex items-center justify-center text-muted-foreground">
-                            {/* Placeholder for Image */}
-                            <span className="text-sm">No Image</span>
-                        </div>
-                        <CardContent className="p-4 flex-1">
-                            <div className="flex justify-between items-start mb-2 gap-2">
-                                <h3 className="font-bold text-lg leading-tight line-clamp-2 text-foreground">{item.name}</h3>
-                                <Badge variant="secondary" className="whitespace-nowrap shrink-0">
-                                    {item.preparationTime ? `${item.preparationTime} min` : '-'}
-                                </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                                {item.description}
-                            </p>
-                            <div className="font-bold text-lg text-foreground">
-                                Rp {parseFloat(item.price).toLocaleString('id-ID')}
-                            </div>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-0">
-                            <Button className="w-full gap-2" onClick={() => addToCart(item)}>
-                                <Plus className="h-4 w-4" /> Tambah
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+            {/* Menu Grid dengan Carousel */}
+            <div className="px-3 sm:px-4 py-4 overflow-hidden">
+                <MenuCarousel items={filteredItems} onAddToCart={addToCart} />
             </div>
 
             {/* Floating Cart Button */}
             {cart.length > 0 && (
-                <div className="fixed bottom-6 right-6 z-20">
+                <div className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-20">
                     <Sheet>
                         <SheetTrigger asChild>
-                            <Button size="lg" className="rounded-full shadow-lg h-14 px-6 gap-3">
+                            <Button size="lg" className="rounded-full shadow-lg h-12 sm:h-14 px-4 sm:px-6 gap-2 sm:gap-3">
                                 <div className="relative">
-                                    <ShoppingCart className="h-6 w-6" />
+                                    <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
                                     <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                                         {cart.reduce((a, b) => a + b.quantity, 0)}
                                     </span>
                                 </div>
-                                <span className="font-bold">
+                                <span className="font-bold text-sm sm:text-base">
                                     Rp {totalAmount.toLocaleString('id-ID')}
                                 </span>
                             </Button>
@@ -279,6 +250,139 @@ export function MenuList({ categories, items }: MenuListProps) {
                     </Sheet>
                 </div>
             )}
+        </div>
+    );
+}
+
+// Komponen Carousel Menu Modern
+function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; onAddToCart: (item: MenuItem) => void }) {
+    const [emblaRef, emblaApi] = useEmblaCarousel({ 
+        align: "start",
+        slidesToScroll: 1,
+        containScroll: "trimSnaps",
+        breakpoints: {
+            '(min-width: 768px)': { slidesToScroll: 2 },
+            '(min-width: 1024px)': { slidesToScroll: 3 },
+        }
+    });
+    
+    const [canScrollPrev, setCanScrollPrev] = useState(false);
+    const [canScrollNext, setCanScrollNext] = useState(false);
+
+    const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+    const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+    const onSelect = useCallback(() => {
+        if (!emblaApi) return;
+        setCanScrollPrev(emblaApi.canScrollPrev());
+        setCanScrollNext(emblaApi.canScrollNext());
+    }, [emblaApi]);
+
+    useEffect(() => {
+        if (!emblaApi) return;
+        onSelect();
+        emblaApi.on("select", onSelect);
+        emblaApi.on("reInit", onSelect);
+        return () => {
+            emblaApi.off("select", onSelect);
+            emblaApi.off("reInit", onSelect);
+        };
+    }, [emblaApi, onSelect]);
+
+    if (items.length === 0) {
+        return (
+            <div className="flex items-center justify-center py-12 text-muted-foreground">
+                Tidak ada menu dalam kategori ini
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3 gap-2">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">{items.length} menu</p>
+                {/* Navigation Buttons */}
+                <div className="flex gap-1 shrink-0">
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={scrollPrev}
+                        disabled={!canScrollPrev}
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
+                    >
+                        <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={scrollNext}
+                        disabled={!canScrollNext}
+                        className="h-7 w-7 sm:h-8 sm:w-8 rounded-full"
+                    >
+                        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+                    </Button>
+                </div>
+            </div>
+
+            {/* Carousel - Both Mobile & Desktop */}
+            <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex gap-3 sm:gap-4 lg:justify-center">
+                    {items.map((item) => (
+                        <div key={item.id} className="flex-none w-[75vw] sm:w-[260px] md:w-[280px] lg:w-[300px] max-w-[280px] sm:max-w-none">
+                            <Card 
+                                className="group overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-background to-muted/30 active:scale-[0.98]"
+                                onClick={() => onAddToCart(item)}
+                            >
+                                {/* Image */}
+                                <div className="relative h-36 sm:h-44 overflow-hidden rounded-t-2xl bg-background">
+                                    {item.imageUrl ? (
+                                        <img
+                                            src={item.imageUrl}
+                                            alt={item.name}
+                                            className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-muted/30 flex items-center justify-center">
+                                            <span className="text-muted-foreground text-sm">No Image</span>
+                                        </div>
+                                    )}
+                                    {/* Add button overlay */}
+                                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300" />
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                        <div className="bg-primary text-primary-foreground rounded-full p-3 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                                            <Plus className="h-6 w-6" />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Content */}
+                                <CardContent className="p-3 sm:p-4">
+                                    <h3 className="font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-1 mb-1.5 sm:mb-2">
+                                        {item.name}
+                                    </h3>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <span className="font-bold text-lg sm:text-xl text-emerald-600 dark:text-emerald-400">
+                                            Rp {parseFloat(item.price).toLocaleString('id-ID')}
+                                        </span>
+                                        {item.preparationTime && (
+                                            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 border-0 gap-1 text-xs">
+                                                <Clock className="h-3 w-3" />
+                                                {item.preparationTime}m
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    {item.description && (
+                                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mt-1.5 sm:mt-2">
+                                            {item.description}
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

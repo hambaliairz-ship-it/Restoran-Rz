@@ -4,9 +4,11 @@ import { PaymentDialog } from "./payment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Wallet, RefreshCw } from "lucide-react";
+import { Wallet, RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/components/providers/language-provider";
+import { deleteOrder } from "./actions";
+import { toast } from "sonner";
 import type { CashierOrder } from "./types";
 
 interface CashierContentProps {
@@ -17,13 +19,13 @@ export function CashierContent({ unpaidOrders }: CashierContentProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("cashierTitle")}</h1>
-          <p className="text-muted-foreground">{t("cashierDesc")}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("cashierTitle")}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{t("cashierDesc")}</p>
         </div>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="self-end sm:self-auto">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
@@ -42,12 +44,31 @@ export function CashierContent({ unpaidOrders }: CashierContentProps) {
                   <Badge variant="outline" className="bg-background text-foreground">
                     {order.orderNumber}
                   </Badge>
-                  <Badge variant={order.status === "ready" ? "default" : "secondary"}>
-                    {order.status}
-                  </Badge>
+                  <div className="flex items-center gap-1">
+                    <Badge variant={order.status === "ready" ? "default" : "secondary"}>
+                      {order.status}
+                    </Badge>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={async () => {
+                        if (confirm("Yakin ingin menghapus pesanan ini?")) {
+                          try {
+                            await deleteOrder(order.id);
+                            toast.success("Pesanan berhasil dihapus");
+                          } catch {
+                            toast.error("Gagal menghapus pesanan");
+                          }
+                        }
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
                 <CardTitle className="text-base">
-                  Hambali • {t("table")} 12
+                  {order.customerName || "Guest"} • {t("table")} {order.tableNumber || "-"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-1 py-4">

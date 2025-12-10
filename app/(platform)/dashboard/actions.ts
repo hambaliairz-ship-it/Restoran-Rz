@@ -1,8 +1,9 @@
 'use server';
 
 import { db } from '@/db';
-import { orders, payments, ingredients } from '@/db/schema';
+import { orders, payments, ingredients, orderItems } from '@/db/schema';
 import { count, eq, sum, and, gte, lte, desc, sql } from 'drizzle-orm';
+import { revalidatePath } from 'next/cache';
 
 export async function getDashboardStats() {
     const today = new Date();
@@ -56,4 +57,19 @@ export async function getDashboardStats() {
         lowStockItems: lowStockCount,
         recentOrders
     };
+}
+
+export async function deleteOrder(orderId: string) {
+    // 1. Hapus payments yang terkait
+    await db.delete(payments).where(eq(payments.orderId, orderId));
+    
+    // 2. Hapus order items yang terkait
+    await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+    
+    // 3. Hapus order
+    await db.delete(orders).where(eq(orders.id, orderId));
+    
+    revalidatePath('/dashboard');
+    revalidatePath('/admin/cashier');
+    revalidatePath('/admin/kitchen');
 }

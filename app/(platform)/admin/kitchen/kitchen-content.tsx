@@ -16,17 +16,17 @@ export function KitchenContent({ orders }: KitchenContentProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {t("kitchenDashboardTitle")}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {t("kitchenDashboardDesc")}
           </p>
         </div>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" className="self-end sm:self-auto">
           <RefreshCw className="h-4 w-4" />
         </Button>
       </div>

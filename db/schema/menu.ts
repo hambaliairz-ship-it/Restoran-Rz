@@ -13,7 +13,7 @@ export const menuItems = pgTable('menu_items', {
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  imageUrl: varchar('image_url', { length: 500 }),
+  imageUrl: text('image_url'),
   categoryId: uuid('category_id').references(() => categories.id),
   isAvailable: boolean('is_available').default(true),
   preparationTime: integer('preparation_time'), // in minutes

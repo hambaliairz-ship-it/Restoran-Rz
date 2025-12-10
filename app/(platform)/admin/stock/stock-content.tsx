@@ -21,13 +21,13 @@ export function StockContent({ ingredients, transactions }: StockContentProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t("stockTitle")}</h1>
-          <p className="text-muted-foreground">{t("stockDesc")}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("stockTitle")}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{t("stockDesc")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full sm:w-auto">
           <AddIngredientDialog />
           <StockTransactionDialog ingredients={ingredients} />
         </div>
@@ -41,61 +41,104 @@ export function StockContent({ ingredients, transactions }: StockContentProps) {
               {t("stockTableTitle")}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("stockName")}</TableHead>
-                  <TableHead className="text-right">{t("stockCurrent")}</TableHead>
-                  <TableHead className="text-right">{t("stockCostPerUnit")}</TableHead>
-                  <TableHead className="text-center">{t("stockStatus")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ingredients.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      {t("stockNoIngredients")}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  ingredients.map((item) => {
-                    const current = parseFloat(item.currentStock || "0");
-                    const min = parseFloat(item.minStock || "0");
-                    const isLow = current <= min;
+          <CardContent className="px-2 sm:px-6">
+            {/* Mobile: Card View */}
+            <div className="block md:hidden space-y-3">
+              {ingredients.length === 0 ? (
+                <p className="text-center py-8 text-muted-foreground">{t("stockNoIngredients")}</p>
+              ) : (
+                ingredients.map((item) => {
+                  const current = parseFloat(item.currentStock || "0");
+                  const min = parseFloat(item.minStock || "0");
+                  const isLow = current <= min;
 
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="text-right">
-                          {current}{" "}
-                          <span className="text-muted-foreground text-xs">
-                            {item.unit}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          Rp {parseFloat(item.costPerUnit).toLocaleString("id-ID")}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {isLow ? (
-                            <Badge variant="destructive" className="gap-1">
-                              <AlertTriangle className="h-3 w-3" /> {t("stockLow")}
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-green-50 text-green-700 border-green-200" variant="outline">
-                              {t("stockSafe")}
-                            </Badge>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+                  return (
+                    <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold">{item.name}</span>
+                        {isLow ? (
+                          <Badge variant="destructive" className="gap-1 text-xs">
+                            <AlertTriangle className="h-3 w-3" /> {t("stockLow")}
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-50 text-green-700 border-green-200 text-xs" variant="outline">
+                            {t("stockSafe")}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <div>
+                          <span className="text-muted-foreground">{t("stockCurrent")}: </span>
+                          <span className="font-medium">{current} {item.unit}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Harga: </span>
+                          <span className="font-medium">Rp {parseFloat(item.costPerUnit).toLocaleString("id-ID")}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop: Table View */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("stockName")}</TableHead>
+                    <TableHead className="text-right">{t("stockCurrent")}</TableHead>
+                    <TableHead className="text-right">{t("stockCostPerUnit")}</TableHead>
+                    <TableHead className="text-center">{t("stockStatus")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ingredients.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-8 text-muted-foreground"
+                      >
+                        {t("stockNoIngredients")}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    ingredients.map((item) => {
+                      const current = parseFloat(item.currentStock || "0");
+                      const min = parseFloat(item.minStock || "0");
+                      const isLow = current <= min;
+
+                      return (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell className="text-right">
+                            {current}{" "}
+                            <span className="text-muted-foreground text-xs">
+                              {item.unit}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            Rp {parseFloat(item.costPerUnit).toLocaleString("id-ID")}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {isLow ? (
+                              <Badge variant="destructive" className="gap-1">
+                                <AlertTriangle className="h-3 w-3" /> {t("stockLow")}
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-green-50 text-green-700 border-green-200" variant="outline">
+                                {t("stockSafe")}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 

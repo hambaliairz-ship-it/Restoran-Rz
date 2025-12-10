@@ -19,6 +19,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconToolsKitchen2,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -43,17 +44,22 @@ const staticData = {
       icon: IconDashboard,
     },
     {
-      title: "Kitchen",
+      title: "Manajemen Menu",
+      url: "/admin/menu",
+      icon: IconToolsKitchen2,
+    },
+    {
+      title: "Kitchen Dashboard",
       url: "/admin/kitchen",
       icon: IconListDetails,
     },
     {
-      title: "Cashier",
+      title: "Cashier Point",
       url: "/admin/cashier",
       icon: IconChartBar,
     },
     {
-      title: "Stock",
+      title: "Manajemen Stok",
       url: "/admin/stock",
       icon: IconDatabase,
     },

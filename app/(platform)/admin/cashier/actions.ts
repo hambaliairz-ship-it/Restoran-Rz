@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { orders, payments } from '@/db/schema';
+import { orders, payments, orderItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -41,4 +41,19 @@ export async function processPayment(data: {
     console.error('Payment processing failed:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Failed to process payment' };
   }
+}
+
+export async function deleteOrder(orderId: string) {
+  // 1. Hapus payments yang terkait
+  await db.delete(payments).where(eq(payments.orderId, orderId));
+  
+  // 2. Hapus order items yang terkait
+  await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
+  
+  // 3. Hapus order
+  await db.delete(orders).where(eq(orders.id, orderId));
+  
+  revalidatePath('/admin/cashier');
+  revalidatePath('/admin/kitchen');
+  revalidatePath('/dashboard');
 }
