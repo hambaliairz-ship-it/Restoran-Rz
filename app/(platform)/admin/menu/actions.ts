@@ -60,9 +60,22 @@ export async function createMenuItem(data: {
   preparationTime?: number;
   isAvailable?: boolean;
 }) {
+  console.log('createMenuItem called with raw data:', {
+    name: data.name,
+    price: data.price,
+    categoryId: data.categoryId,
+    imageUrl: data.imageUrl ? 'exists' : null,
+    preparationTime: data.preparationTime,
+    isAvailable: data.isAvailable
+  });
+
   try {
     // Validasi dan konversi harga ke format desimal yang benar
     const validatedPrice = validateAndConvertPrice(data.price);
+    console.log('Validated price:', validatedPrice);
+
+    // Pastikan kita bisa mengakses db tanpa error sebelum insert
+    console.log('About to insert menu item...');
 
     await db.insert(menuItems).values({
       name: data.name,
@@ -74,11 +87,17 @@ export async function createMenuItem(data: {
       isAvailable: data.isAvailable ?? true,
     });
 
+    console.log('Menu item inserted successfully');
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
+    console.log('Paths revalidated successfully');
   } catch (error) {
     console.error('Error creating menu item:', error);
-    console.log('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown',
+      stack: error instanceof Error ? error.stack : 'No stack'
+    });
     throw new Error(`Gagal menambahkan menu: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
