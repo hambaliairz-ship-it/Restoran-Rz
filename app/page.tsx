@@ -30,11 +30,13 @@ function transformData(dbCategories: DbCategory[], dbItems: MenuItemWithCategory
   })).filter(cat => cat.menuItems.length > 0);
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   // Fetch real data from DB
   const { categories: dbCategories, items: dbItems } = await getMenuData();
   const categories = transformData(dbCategories, dbItems);
-  
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center">
        <ClientHomeContent initialCategories={categories} />

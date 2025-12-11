@@ -29,6 +29,15 @@ if (!databaseUrl) {
 // Use Neon serverless driver for production (Vercel/Netlify), pg for local development
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.NETLIFY;
 
-export const db = isProduction
-  ? drizzleNeon(neon(databaseUrl), { schema })
-  : drizzlePg(databaseUrl, { schema });
+// Create database connection function for serverless environments
+function createDbConnection() {
+  return isProduction
+    ? drizzleNeon(neon(databaseUrl!), { schema })
+    : drizzlePg(databaseUrl!, { schema });
+}
+
+// Export a function to get fresh connection when needed (for serverless)
+export { createDbConnection };
+
+// Maintain the old export for compatibility with existing code
+export const db = createDbConnection();
