@@ -40,10 +40,13 @@ export async function createMenuItem(data: {
   isAvailable?: boolean;
 }) {
   try {
+    // Validasi dan konversi harga ke format desimal yang benar
+    const validatedPrice = validateAndConvertPrice(data.price);
+
     await db.insert(menuItems).values({
       name: data.name,
       description: data.description,
-      price: data.price,
+      price: validatedPrice,
       categoryId: data.categoryId || null,
       imageUrl: data.imageUrl || null,
       preparationTime: data.preparationTime || null,
@@ -55,6 +58,31 @@ export async function createMenuItem(data: {
     console.error('Error creating menu item:', error);
     throw new Error(`Gagal menambahkan menu: ${error instanceof Error ? error.message : 'Database error'}`);
   }
+}
+
+// Fungsi helper untuk validasi dan konversi harga
+function validateAndConvertPrice(price: string): string {
+  if (!price) {
+    throw new Error('Harga tidak boleh kosong');
+  }
+
+  // Menghapus karakter non-numerik kecuali titik desimal
+  const cleanedPrice = price.replace(/[^\d.]/g, '');
+
+  // Pastikan hanya satu titik desimal
+  const parts = cleanedPrice.split('.');
+  if (parts.length > 2) {
+    throw new Error('Format harga tidak valid');
+  }
+
+  // Validasi bahwa nilai adalah angka positif
+  const numericValue = parseFloat(cleanedPrice);
+  if (isNaN(numericValue) || numericValue < 0) {
+    throw new Error('Harga harus berupa angka positif');
+  }
+
+  // Format ulang ke dua digit desimal jika perlu
+  return numericValue.toFixed(2);
 }
 
 export async function updateMenuItem(
@@ -70,7 +98,13 @@ export async function updateMenuItem(
   }
 ) {
   try {
-    await db.update(menuItems).set(data).where(eq(menuItems.id, id));
+    // Jika price disertakan dalam data update, validasi dan konversi terlebih dahulu
+    const updateData = { ...data };
+    if (data.price !== undefined) {
+      updateData.price = validateAndConvertPrice(data.price);
+    }
+
+    await db.update(menuItems).set(updateData).where(eq(menuItems.id, id));
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
   } catch (error) {
