@@ -60,24 +60,24 @@ export async function createMenuItem(data: {
   preparationTime?: number;
   isAvailable?: boolean;
 }) {
-  console.log('createMenuItem called with raw data:', {
-    name: data.name,
-    price: data.price,
-    categoryId: data.categoryId,
-    imageUrl: data.imageUrl ? 'exists' : null,
-    preparationTime: data.preparationTime,
-    isAvailable: data.isAvailable
-  });
-
   try {
+    console.log('Step 1: createMenuItem function entered');
+    console.log('Raw data received:', {
+      name: data.name ? 'present' : 'missing',
+      price: data.price,
+      categoryId: data.categoryId,
+      imageUrl: data.imageUrl ? 'present' : 'missing',
+      preparationTime: data.preparationTime,
+      isAvailable: data.isAvailable
+    });
+
     // Validasi dan konversi harga ke format desimal yang benar
+    console.log('Step 2: About to validate price');
     const validatedPrice = validateAndConvertPrice(data.price);
-    console.log('Validated price:', validatedPrice);
+    console.log('Step 3: Price validated successfully:', validatedPrice);
 
-    // Pastikan kita bisa mengakses db tanpa error sebelum insert
-    console.log('About to insert menu item...');
-
-    await db.insert(menuItems).values({
+    console.log('Step 4: About to construct insert object');
+    const insertObject = {
       name: data.name,
       description: data.description,
       price: validatedPrice,
@@ -85,46 +85,62 @@ export async function createMenuItem(data: {
       imageUrl: data.imageUrl || null,
       preparationTime: data.preparationTime || null,
       isAvailable: data.isAvailable ?? true,
-    });
+    };
+    console.log('Step 5: Insert object constructed:', insertObject);
 
-    console.log('Menu item inserted successfully');
+    console.log('Step 6: About to execute database insertion');
+    await db.insert(menuItems).values(insertObject);
+    console.log('Step 7: Database insertion successful');
+
+    console.log('Step 8: About to revalidate paths');
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
-    console.log('Paths revalidated successfully');
+    console.log('Step 9: Paths revalidated successfully');
   } catch (error) {
-    console.error('Error creating menu item:', error);
-    console.error('Error details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : 'Unknown',
-      stack: error instanceof Error ? error.stack : 'No stack'
-    });
-    throw new Error(`Gagal menambahkan menu: ${error instanceof Error ? error.message : 'Database error'}`);
+    console.error('ERROR at createMenuItem:');
+    console.error('Error name:', error instanceof Error ? error.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    console.error('Error object:', error);
+
+    // Re-throw dengan pesan yang lebih informatif
+    const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : 'Unknown error occurred';
+    throw new Error(`Gagal menambahkan menu: ${errorMessage}`);
   }
 }
 
 // Fungsi helper untuk validasi dan konversi harga
 function validateAndConvertPrice(price: string): string {
+  console.log('Step 2a: Inside validateAndConvertPrice function');
+  console.log('Original price value:', price, 'Type:', typeof price);
+
   if (!price) {
+    console.log('Price validation failed: price is empty');
     throw new Error('Harga tidak boleh kosong');
   }
 
   // Menghapus karakter non-numerik kecuali titik desimal
   const cleanedPrice = price.replace(/[^\d.]/g, '');
+  console.log('Cleaned price:', cleanedPrice);
 
   // Pastikan hanya satu titik desimal
   const parts = cleanedPrice.split('.');
   if (parts.length > 2) {
+    console.log('Price validation failed: multiple decimal points');
     throw new Error('Format harga tidak valid');
   }
 
   // Validasi bahwa nilai adalah angka positif
   const numericValue = parseFloat(cleanedPrice);
   if (isNaN(numericValue) || numericValue < 0) {
+    console.log('Price validation failed: not a positive number');
     throw new Error('Harga harus berupa angka positif');
   }
 
   // Format ulang ke dua digit desimal jika perlu
-  return numericValue.toFixed(2);
+  const finalPrice = numericValue.toFixed(2);
+  console.log('Final validated price:', finalPrice);
+  return finalPrice;
 }
 
 export async function updateMenuItem(
