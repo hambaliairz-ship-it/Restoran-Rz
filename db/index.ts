@@ -26,8 +26,14 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL is required for the application to run');
 }
 
-// Use Neon serverless driver for production (Vercel/Netlify), pg for local development
-const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.NETLIFY;
+// Use Neon serverless driver for production in Vercel/Netlify based on hostnames
+const isServerlessEnv = typeof process.env.VERCEL !== 'undefined' ||
+                       typeof process.env.NETLIFY !== 'undefined' ||
+                       (typeof process.env.HOSTNAME !== 'undefined' &&
+                        (process.env.HOSTNAME.includes('vercel') || process.env.HOSTNAME.includes('netlify')));
+
+// Use Neon serverless driver for production (Vercel/Netlify) and serverless environments, pg for local development
+const isProduction = process.env.NODE_ENV === 'production' || isServerlessEnv;
 
 export const db = isProduction
   ? drizzleNeon(neon(databaseUrl), { schema })
