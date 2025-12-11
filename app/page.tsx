@@ -12,34 +12,56 @@ import type { MenuCategory as DbCategory, MenuItemWithCategory } from "@/app/men
 
 // Helper to transform DB data to Frontend data structure
 function transformData(dbCategories: DbCategory[], dbItems: MenuItemWithCategory[]): Category[] {
+  if (!dbCategories || !dbItems) return [];
+
   return dbCategories.map(cat => ({
     id: cat.id,
     name: cat.name,
     description: cat.description || "",
     menuItems: dbItems
       .filter(item => item.categoryId === cat.id)
-      .map(item => ({
-        id: item.id,
-        name: item.name,
-        description: item.description || "",
-        price: parseFloat(item.price),
-        imageUrl: item.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80", // Default image if null
-        isAvailable: item.isAvailable,
-        preparationTime: item.preparationTime || 15
-      }))
+      .map(item => {
+        try {
+          return {
+            id: item.id,
+            name: item.name,
+            description: item.description || "",
+            price: parseFloat(item.price) || 0,
+            imageUrl: item.imageUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80", // Default image if null
+            isAvailable: item.isAvailable,
+            preparationTime: item.preparationTime || 15
+          };
+        } catch (error) {
+          console.error("Error transforming menu item:", error);
+          return null;
+        }
+      })
+      .filter(Boolean) as any // Filter out null values
   })).filter(cat => cat.menuItems.length > 0);
 }
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  // Fetch real data from DB
-  const { categories: dbCategories, items: dbItems } = await getMenuData();
-  const categories = transformData(dbCategories, dbItems);
+  try {
+    // Fetch real data from DB
+    const { categories: dbCategories, items: dbItems } = await getMenuData();
+    const categories = transformData(dbCategories, dbItems);
 
-  return (
-    <div className="min-h-screen bg-background flex flex-col items-center">
-       <ClientHomeContent initialCategories={categories} />
-    </div>
-  );
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center">
+         <ClientHomeContent initialCategories={categories} />
+      </div>
+    );
+  } catch (error) {
+    console.error("Error in Home page:", error);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-500">Error Loading Menu</h1>
+          <p className="text-muted-foreground">Please try again later</p>
+        </div>
+      </div>
+    );
+  }
 }
