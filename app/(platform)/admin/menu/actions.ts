@@ -1,14 +1,16 @@
 'use server';
 
-import { createDbConnection } from '@/db';
+import { db } from '@/db';
 import { categories, menuItems, orderItems, orders, payments } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getCategories() {
+  console.log('getCategories called');
   try {
-    const db = createDbConnection();
-    return await db.select().from(categories);
+    const result = await db.select().from(categories);
+    console.log('getCategories success, count:', result.length);
+    return result;
   } catch (error) {
     console.error('Error fetching categories:', error);
     throw new Error(`Gagal mengambil kategori: ${error instanceof Error ? error.message : 'Database error'}`);
@@ -16,14 +18,16 @@ export async function getCategories() {
 }
 
 export async function getMenuItems() {
+  console.log('getMenuItems called');
   try {
-    const db = createDbConnection();
     // Dapatkan semua menu items
     const menuItemsResult = await db.select().from(menuItems)
       .orderBy(desc(menuItems.createdAt));
+    console.log('Fetched menu items count:', menuItemsResult.length);
 
     // Dapatkan semua kategori
     const categoriesResult = await db.select().from(categories);
+    console.log('Fetched categories count:', categoriesResult.length);
 
     // Bangun hubungan antara menu items dan kategori secara manual
     const menuItemsWithCategories = menuItemsResult.map(item => ({
@@ -31,6 +35,7 @@ export async function getMenuItems() {
       category: categoriesResult.find(cat => cat.id === item.categoryId) || null
     }));
 
+    console.log('Final menu items with categories count:', menuItemsWithCategories.length);
     return menuItemsWithCategories;
   } catch (error) {
     console.error('Error fetching menu items:', error);
@@ -40,7 +45,6 @@ export async function getMenuItems() {
 
 export async function createCategory(data: { name: string; description?: string }) {
   try {
-    const db = createDbConnection();
     await db.insert(categories).values({
       name: data.name,
       description: data.description,
@@ -62,10 +66,19 @@ export async function createMenuItem(data: {
   preparationTime?: number;
   isAvailable?: boolean;
 }) {
+  console.log('createMenuItem called with data:', {
+    name: data.name,
+    price: data.price,
+    categoryId: data.categoryId,
+    imageUrl: data.imageUrl ? 'exists' : 'null',
+    preparationTime: data.preparationTime,
+    isAvailable: data.isAvailable
+  });
+
   try {
-    const db = createDbConnection();
     // Validasi dan konversi harga ke format desimal yang benar
     const validatedPrice = validateAndConvertPrice(data.price);
+    console.log('Validated price:', validatedPrice);
 
     await db.insert(menuItems).values({
       name: data.name,
@@ -76,8 +89,11 @@ export async function createMenuItem(data: {
       preparationTime: data.preparationTime || null,
       isAvailable: data.isAvailable ?? true,
     });
+    console.log('Menu item inserted successfully');
+
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
+    console.log('Paths revalidated');
   } catch (error) {
     console.error('Error creating menu item:', error);
     throw new Error(`Gagal menambahkan menu: ${error instanceof Error ? error.message : 'Database error'}`);
@@ -122,7 +138,6 @@ export async function updateMenuItem(
   }
 ) {
   try {
-    const db = createDbConnection();
     // Jika price disertakan dalam data update, validasi dan konversi terlebih dahulu
     const updateData = { ...data };
     if (data.price !== undefined) {
@@ -140,7 +155,6 @@ export async function updateMenuItem(
 
 export async function deleteMenuItem(id: string) {
   try {
-    const db = createDbConnection();
     // 1. Cari semua order_items yang terkait dengan menu ini
     const relatedOrderItems = await db
       .select({ orderId: orderItems.orderId })
@@ -183,7 +197,6 @@ export async function deleteMenuItem(id: string) {
 
 export async function deleteCategory(id: string) {
   try {
-    const db = createDbConnection();
     // Set menu items in this category to null first
     await db.update(menuItems).set({ categoryId: null }).where(eq(menuItems.categoryId, id));
     await db.delete(categories).where(eq(categories.id, id));
