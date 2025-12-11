@@ -101,11 +101,11 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
       setIsLoading(true);
       const compressedImage = await compressImage(file);
       const size = getImageSizeFromBase64(compressedImage);
-      
+
       setImagePreview(compressedImage);
       setImageSize(size);
       setMenuForm((prev) => ({ ...prev, imageUrl: compressedImage }));
-      
+
       toast.success(`Gambar dikompresi ke ${size}KB`);
     } catch (error) {
       toast.error("Gagal memproses gambar");
@@ -136,8 +136,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
       toast.success("Menu berhasil ditambahkan");
       setIsAddMenuOpen(false);
       resetMenuForm();
-    } catch (error) {
-      toast.error("Gagal menambahkan menu");
+    } catch (error: any) {
+      console.error("Error menambahkan menu:", error);
+      const errorMessage = error.message || "Gagal menambahkan menu";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -159,8 +161,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
       toast.success("Kategori berhasil ditambahkan");
       setIsAddCategoryOpen(false);
       setCategoryForm({ name: "", description: "" });
-    } catch (error) {
-      toast.error("Gagal menambahkan kategori");
+    } catch (error: any) {
+      console.error("Error menambahkan kategori:", error);
+      const errorMessage = error.message || "Gagal menambahkan kategori";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -200,8 +204,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
       setIsEditMenuOpen(false);
       setEditingItem(null);
       resetMenuForm();
-    } catch (error) {
-      toast.error("Gagal memperbarui menu");
+    } catch (error: any) {
+      console.error("Error memperbarui menu:", error);
+      const errorMessage = error.message || "Gagal memperbarui menu";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -213,8 +219,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
     try {
       await deleteMenuItem(id);
       toast.success("Menu berhasil dihapus");
-    } catch (error) {
-      toast.error("Gagal menghapus menu");
+    } catch (error: any) {
+      console.error("Error menghapus menu:", error);
+      const errorMessage = error.message || "Gagal menghapus menu";
+      toast.error(errorMessage);
     }
   };
 
@@ -224,8 +232,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
     try {
       await deleteCategory(id);
       toast.success("Kategori berhasil dihapus");
-    } catch (error) {
-      toast.error("Gagal menghapus kategori");
+    } catch (error: any) {
+      console.error("Error menghapus kategori:", error);
+      const errorMessage = error.message || "Gagal menghapus kategori";
+      toast.error(errorMessage);
     }
   };
 
@@ -233,8 +243,10 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
     try {
       await updateMenuItem(item.id, { isAvailable: !item.isAvailable });
       toast.success(item.isAvailable ? "Menu dinonaktifkan" : "Menu diaktifkan");
-    } catch (error) {
-      toast.error("Gagal mengubah status menu");
+    } catch (error: any) {
+      console.error("Error mengubah status menu:", error);
+      const errorMessage = error.message || "Gagal mengubah status menu";
+      toast.error(errorMessage);
     }
   };
 
@@ -512,7 +524,7 @@ export function MenuManagement({ categories, menuItems }: MenuManagementProps) {
               </TableBody>
             </Table>
           </div>
-          
+
           {/* Pagination */}
           {menuItems.length > ITEMS_PER_PAGE && (
             <div className="flex items-center justify-between pt-4 border-t mt-4 gap-2">
