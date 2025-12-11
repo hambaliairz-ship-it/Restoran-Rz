@@ -2,18 +2,38 @@
 
 import { db } from '@/db';
 import { categories, menuItems, orderItems, orders, payments } from '@/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getCategories() {
-  return await db.select().from(categories);
+  try {
+    return await db.select().from(categories);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    throw new Error(`Gagal mengambil kategori: ${error instanceof Error ? error.message : 'Database error'}`);
+  }
 }
 
 export async function getMenuItems() {
-  return await db.query.menuItems.findMany({
-    with: { category: true },
-    orderBy: (menuItems, { desc }) => [desc(menuItems.createdAt)],
-  });
+  try {
+    // Dapatkan semua menu items
+    const menuItemsResult = await db.select().from(menuItems)
+      .orderBy(desc(menuItems.createdAt));
+
+    // Dapatkan semua kategori
+    const categoriesResult = await db.select().from(categories);
+
+    // Bangun hubungan antara menu items dan kategori secara manual
+    const menuItemsWithCategories = menuItemsResult.map(item => ({
+      ...item,
+      category: categoriesResult.find(cat => cat.id === item.categoryId) || null
+    }));
+
+    return menuItemsWithCategories;
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    throw new Error(`Gagal mengambil menu: ${error instanceof Error ? error.message : 'Database error'}`);
+  }
 }
 
 export async function createCategory(data: { name: string; description?: string }) {
