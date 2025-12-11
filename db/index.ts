@@ -19,11 +19,24 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-const databaseUrl = process.env.DATABASE_URL!;
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error('DATABASE_URL is not set in environment variables');
+  throw new Error('DATABASE_URL is required for the application to run');
+}
 
 // Use Neon serverless driver for production (Vercel/Netlify), pg for local development
 const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL || process.env.NETLIFY;
 
-export const db = isProduction
-  ? drizzleNeon(neon(databaseUrl), { schema })
-  : drizzlePg(databaseUrl, { schema });
+let db;
+try {
+  db = isProduction
+    ? drizzleNeon(neon(databaseUrl), { schema })
+    : drizzlePg(databaseUrl, { schema });
+} catch (error) {
+  console.error('Failed to create database connection:', error);
+  throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+}
+
+export { db };
