@@ -90,37 +90,37 @@ export async function createMenuItem(data: {
     console.log('Step 4: About to construct insert object');
 
     // Konversi preparationTime dengan validasi tambahan
-    let preparationTimeValue: number | null = null;
+    let prepTimeValue: number | null = null;
     if (data.preparationTime !== undefined && data.preparationTime !== null) {
-      preparationTimeValue = Number(data.preparationTime);
-      if (isNaN(preparationTimeValue)) {
+      prepTimeValue = Number(data.preparationTime);
+      if (isNaN(prepTimeValue)) {
         throw new Error('Waktu persiapan harus berupa angka');
       }
     }
 
     // Validasi categoryId
-    let categoryIdValue: string | null = null;
+    let catIdValue: string | null = null;
     if (data.categoryId) {
       // Lakukan pengecekan apakah kategori ada di database
       const categoryExists = await db.select().from(categories).where(eq(categories.id, data.categoryId));
       if (categoryExists.length === 0) {
         throw new Error('Kategori tidak ditemukan');
       }
-      categoryIdValue = data.categoryId;
+      catIdValue = data.categoryId;
     }
 
     // Validasi isAvailable
-    const isAvailableValue = data.isAvailable ?? true;
+    const availableValue = data.isAvailable ?? true;
 
     // Konstruksi objek insert dengan validasi tambahan
     const insertObject = {
       name: data.name.trim(), // Pastikan nama tidak ada spasi berlebih
       description: data.description ? data.description.trim() : null,
       price: validatedPrice,
-      categoryId: categoryIdValue,
+      categoryId: catIdValue,
       imageUrl: data.imageUrl || null,
-      preparationTime: preparationTimeValue,
-      isAvailable: isAvailableValue,
+      preparationTime: prepTimeValue,
+      isAvailable: availableValue,
     };
     console.log('Step 5: Insert object constructed:', insertObject);
 
