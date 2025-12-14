@@ -77,13 +77,17 @@ export async function createMenuItem(data: {
     console.log('Step 3: Price validated successfully:', validatedPrice);
 
     console.log('Step 4: About to construct insert object');
+
+    // Konstruksi objek insert dengan validasi tambahan
     const insertObject = {
       name: data.name,
-      description: data.description,
+      description: data.description || null,
       price: validatedPrice,
       categoryId: data.categoryId || null,
       imageUrl: data.imageUrl || null,
-      preparationTime: data.preparationTime || null,
+      preparationTime: data.preparationTime !== undefined && data.preparationTime !== null
+        ? parseInt(data.preparationTime.toString(), 10)
+        : null,
       isAvailable: data.isAvailable ?? true,
     };
     console.log('Step 5: Insert object constructed:', insertObject);
