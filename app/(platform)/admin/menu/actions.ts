@@ -11,6 +11,10 @@ export async function getCategories() {
     return result;
   } catch (error) {
     console.error('Error fetching categories:', error);
+    // Log detail error untuk debugging di Netlify
+    if (error instanceof Error) {
+      console.error('Stack:', error.stack);
+    }
     throw new Error(`Gagal mengambil kategori: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -131,8 +135,19 @@ export async function createMenuItem(data: {
       const result = await db.insert(menuItems).values(insertObject);
       console.log('Step 7: Database insertion successful', result);
     } catch (dbError) {
-      console.error('Database insertion failed:', dbError instanceof Error ? dbError.message : dbError);
-      throw new Error('Gagal menyimpan data menu ke database');
+      console.error('Database insertion failed. Details:');
+      console.error('Error message:', dbError instanceof Error ? dbError.message : dbError);
+
+      // Deteksi error spesifik
+      if (dbError instanceof Error) {
+        if (dbError.message.includes('connect')) {
+          console.error('POSSIBLE CAUSE: Database connection failed. Check DATABASE_URL.');
+        } else if (dbError.message.includes('permission')) {
+          console.error('POSSIBLE CAUSE: Database user does not have permission.');
+        }
+      }
+
+      throw new Error('Gagal menyimpan data menu ke database: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
     }
 
     console.log('Step 8: About to revalidate paths');
