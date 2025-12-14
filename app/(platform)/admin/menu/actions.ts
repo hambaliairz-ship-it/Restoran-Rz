@@ -71,6 +71,11 @@ export async function createMenuItem(data: {
       isAvailable: data.isAvailable
     });
 
+    // Validasi input sebelum proses
+    if (!data.name || !data.price) {
+      throw new Error('Nama dan harga wajib diisi');
+    }
+
     // Validasi dan konversi harga ke format desimal yang benar
     console.log('Step 2: About to validate price');
     const validatedPrice = validateAndConvertPrice(data.price);
@@ -78,23 +83,33 @@ export async function createMenuItem(data: {
 
     console.log('Step 4: About to construct insert object');
 
+    // Konversi preparationTime dengan validasi tambahan
+    const preparationTimeValue = data.preparationTime !== undefined && data.preparationTime !== null
+      ? parseInt(data.preparationTime.toString(), 10)
+      : null;
+
+    // Validasi preparationTime
+    if (preparationTimeValue !== null && isNaN(preparationTimeValue)) {
+      throw new Error('Waktu persiapan harus berupa angka');
+    }
+
     // Konstruksi objek insert dengan validasi tambahan
     const insertObject = {
-      name: data.name,
-      description: data.description || null,
+      name: data.name.trim(), // Pastikan nama tidak ada spasi berlebih
+      description: data.description ? data.description.trim() : null,
       price: validatedPrice,
       categoryId: data.categoryId || null,
       imageUrl: data.imageUrl || null,
-      preparationTime: data.preparationTime !== undefined && data.preparationTime !== null
-        ? parseInt(data.preparationTime.toString(), 10)
-        : null,
+      preparationTime: preparationTimeValue,
       isAvailable: data.isAvailable ?? true,
     };
     console.log('Step 5: Insert object constructed:', insertObject);
 
     console.log('Step 6: About to execute database insertion');
-    await db.insert(menuItems).values(insertObject);
-    console.log('Step 7: Database insertion successful');
+
+    // Lakukan insert dengan error handling lebih rinci
+    const result = await db.insert(menuItems).values(insertObject);
+    console.log('Step 7: Database insertion successful', result);
 
     console.log('Step 8: About to revalidate paths');
     revalidatePath('/admin/menu');
@@ -106,6 +121,12 @@ export async function createMenuItem(data: {
     console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack available');
     console.error('Error object:', error);
+
+    // Cek apakah error terkait dengan struktur database
+    if (error instanceof Error && error.message.includes('relation "menu_items" does not exist')) {
+      console.error('ERROR: Table menu_items does not exist in database. Migrations may not have been run.');
+      throw new Error('Struktur database tidak lengkap. Silakan hubungi administrator untuk menjalankan migrasi database.');
+    }
 
     // Re-throw dengan pesan yang lebih informatif
     const errorMessage = error instanceof Error ? `${error.name}: ${error.message}` : 'Unknown error occurred';
