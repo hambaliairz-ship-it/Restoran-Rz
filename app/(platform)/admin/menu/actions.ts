@@ -137,8 +137,12 @@ function validateAndConvertPrice(price: string): string {
     throw new Error('Harga harus berupa angka positif');
   }
 
-  // Format ulang ke dua digit desimal jika perlu
-  const finalPrice = numericValue.toFixed(2);
+  // Format ulang ke dua digit desimal jika perlu - menggunakan format string yang konsisten
+  const finalPrice = numericValue.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).replace(/,/g, ''); // Hapus koma jika ada
+
   console.log('Final validated price:', finalPrice);
   return finalPrice;
 }
