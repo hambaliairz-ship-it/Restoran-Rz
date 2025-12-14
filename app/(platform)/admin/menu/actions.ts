@@ -78,38 +78,62 @@ export async function createMenuItem(data: {
 
     // Validasi dan konversi harga ke format desimal yang benar
     console.log('Step 2: About to validate price');
-    const validatedPrice = validateAndConvertPrice(data.price);
+    let validatedPrice: string;
+    try {
+      validatedPrice = validateAndConvertPrice(data.price);
+    } catch (validationError) {
+      console.error('Price validation failed:', validationError instanceof Error ? validationError.message : validationError);
+      throw validationError;
+    }
     console.log('Step 3: Price validated successfully:', validatedPrice);
 
     console.log('Step 4: About to construct insert object');
 
     // Konversi preparationTime dengan validasi tambahan
-    const preparationTimeValue = data.preparationTime !== undefined && data.preparationTime !== null
-      ? parseInt(data.preparationTime.toString(), 10)
-      : null;
-
-    // Validasi preparationTime
-    if (preparationTimeValue !== null && isNaN(preparationTimeValue)) {
-      throw new Error('Waktu persiapan harus berupa angka');
+    let preparationTimeValue: number | null = null;
+    if (data.preparationTime !== undefined && data.preparationTime !== null) {
+      preparationTimeValue = Number(data.preparationTime);
+      if (isNaN(preparationTimeValue)) {
+        throw new Error('Waktu persiapan harus berupa angka');
+      }
     }
+
+    // Validasi categoryId
+    let categoryIdValue: string | null = null;
+    if (data.categoryId) {
+      // Lakukan pengecekan apakah kategori ada di database
+      const categoryExists = await db.select().from(categories).where(eq(categories.id, data.categoryId));
+      if (categoryExists.length === 0) {
+        throw new Error('Kategori tidak ditemukan');
+      }
+      categoryIdValue = data.categoryId;
+    }
+
+    // Validasi isAvailable
+    const isAvailableValue = data.isAvailable ?? true;
 
     // Konstruksi objek insert dengan validasi tambahan
     const insertObject = {
       name: data.name.trim(), // Pastikan nama tidak ada spasi berlebih
       description: data.description ? data.description.trim() : null,
       price: validatedPrice,
-      categoryId: data.categoryId || null,
+      categoryId: categoryIdValue,
       imageUrl: data.imageUrl || null,
       preparationTime: preparationTimeValue,
-      isAvailable: data.isAvailable ?? true,
+      isAvailable: isAvailableValue,
     };
     console.log('Step 5: Insert object constructed:', insertObject);
 
     console.log('Step 6: About to execute database insertion');
 
     // Lakukan insert dengan error handling lebih rinci
-    const result = await db.insert(menuItems).values(insertObject);
-    console.log('Step 7: Database insertion successful', result);
+    try {
+      const result = await db.insert(menuItems).values(insertObject);
+      console.log('Step 7: Database insertion successful', result);
+    } catch (dbError) {
+      console.error('Database insertion failed:', dbError instanceof Error ? dbError.message : dbError);
+      throw new Error('Gagal menyimpan data menu ke database');
+    }
 
     console.log('Step 8: About to revalidate paths');
     revalidatePath('/admin/menu');
