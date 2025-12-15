@@ -77,10 +77,17 @@ export async function createMenuItem(data: {
       name: data.name ? 'present' : 'missing',
       price: data.price,
       categoryId: data.categoryId,
-      imageUrl: data.imageUrl ? 'present' : 'missing',
+      imageUrlLength: data.imageUrl ? data.imageUrl.length : 0,
       preparationTime: data.preparationTime,
       isAvailable: data.isAvailable
     });
+
+    // Check payload size hard limit (e.g. 100KB for text string approx)
+    // Base64 encoding efficiency is ~75%, so 100KB string is ~75KB binary data
+    if (data.imageUrl && data.imageUrl.length > 102400) {
+      console.error('Image payload too large:', data.imageUrl.length, 'bytes');
+      throw new Error('Ukuran gambar terlalu besar. Mohon upload gambar yang lebih kecil.');
+    }
 
     // Validasi input sebelum proses
     if (!data.name || !data.price) {
