@@ -41,7 +41,7 @@ export function ProductCard({
   };
 
   return (
-    <Card 
+    <Card
       className="group overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-background to-muted/30 active:scale-[0.98]"
       onClick={handleAddToCart}
     >
@@ -53,6 +53,11 @@ export function ProductCard({
             alt={name}
             fill
             className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              // Jika gambar tidak bisa dimuat, ganti dengan placeholder
+              const target = e.target as HTMLImageElement;
+              target.src = `https://placehold.co/300x200?text=${encodeURIComponent(name)}`;
+            }}
           />
         ) : (
           <div className="w-full h-full bg-muted/30 flex items-center justify-center">
@@ -74,14 +79,14 @@ export function ProductCard({
           </div>
         )}
       </div>
-      
+
       {/* Content - Horizontal Layout */}
       <CardContent className="p-4">
         {/* Row 1: Name */}
         <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-1 mb-2">
           {name}
         </h3>
-        
+
         {/* Row 2: Price and Time - Horizontal */}
         <div className="flex items-center justify-between gap-3">
           <span className="font-bold text-xl text-emerald-600 dark:text-emerald-400">
@@ -94,7 +99,7 @@ export function ProductCard({
             </Badge>
           )}
         </div>
-        
+
         {/* Row 3: Description */}
         {description && (
           <p className="text-sm text-muted-foreground line-clamp-2 mt-2">

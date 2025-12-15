@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ChevronRight, Clock } from "lucide-react"
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetHeader, 
-  SheetTitle, 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
   SheetFooter
 } from "@/components/ui/sheet"
@@ -44,18 +44,18 @@ export function MenuList({ categories, items }: MenuListProps) {
     const [activeCategory, setActiveCategory] = useState("all");
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    
+
     // Customer Info State
     const [customerName, setCustomerName] = useState("");
     const [tableNumber, setTableNumber] = useState("");
 
-    const filteredItems = activeCategory === "all" 
-        ? items 
+    const filteredItems = activeCategory === "all"
+        ? items
         : items.filter(item => item.categoryId === activeCategory);
 
     const currentCategory = categories.find(c => c.id === activeCategory);
-    const categoryDescription = activeCategory === "all" 
-        ? "Semua menu pilihan terbaik kami" 
+    const categoryDescription = activeCategory === "all"
+        ? "Semua menu pilihan terbaik kami"
         : currentCategory?.description;
 
     const addToCart = (item: MenuItem) => {
@@ -113,19 +113,19 @@ export function MenuList({ categories, items }: MenuListProps) {
     return (
         <div className="flex flex-col min-h-screen pb-24 bg-background overflow-x-hidden">
             {/* Category Filter */}
-            <div 
-                className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-3 sm:px-4 py-2.5 sm:py-3 overflow-x-auto flex gap-1.5 sm:gap-2 justify-start lg:justify-center" 
+            <div
+                className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b px-3 sm:px-4 py-2.5 sm:py-3 overflow-x-auto flex gap-1.5 sm:gap-2 justify-start lg:justify-center"
                 style={{ WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
-                <Button 
-                    variant={activeCategory === "all" ? "default" : "outline"} 
+                <Button
+                    variant={activeCategory === "all" ? "default" : "outline"}
                     onClick={() => setActiveCategory("all")}
                     className="rounded-full whitespace-nowrap text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4 shrink-0"
                 >
                     Semua
                 </Button>
                 {categories.map(cat => (
-                    <Button 
+                    <Button
                         key={cat.id}
                         variant={activeCategory === cat.id ? "default" : "outline"}
                         onClick={() => setActiveCategory(cat.id)}
@@ -162,13 +162,13 @@ export function MenuList({ categories, items }: MenuListProps) {
                             <SheetHeader>
                                 <SheetTitle>Keranjang Pesanan</SheetTitle>
                             </SheetHeader>
-                            
+
                             <div className="flex-1 overflow-y-auto py-6 space-y-6">
                                 <div className="space-y-4">
                                     <div className="grid gap-2">
                                         <Label htmlFor="customer">Nama Pemesan</Label>
-                                        <Input 
-                                            id="customer" 
+                                        <Input
+                                            id="customer"
                                             placeholder="Budi Santoso"
                                             value={customerName}
                                             onChange={(e) => setCustomerName(e.target.value)}
@@ -176,8 +176,8 @@ export function MenuList({ categories, items }: MenuListProps) {
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor="table">Nomor Meja</Label>
-                                        <Input 
-                                            id="table" 
+                                        <Input
+                                            id="table"
                                             placeholder="5"
                                             value={tableNumber}
                                             onChange={(e) => setTableNumber(e.target.value)}
@@ -236,8 +236,8 @@ export function MenuList({ categories, items }: MenuListProps) {
                                         <span>Total</span>
                                         <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
                                     </div>
-                                    <Button 
-                                        className="w-full size-lg text-lg" 
+                                    <Button
+                                        className="w-full size-lg text-lg"
                                         onClick={handleCheckout}
                                         disabled={isCheckingOut}
                                     >
@@ -256,7 +256,7 @@ export function MenuList({ categories, items }: MenuListProps) {
 
 // Komponen Carousel Menu Modern
 function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; onAddToCart: (item: MenuItem) => void }) {
-    const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    const [emblaRef, emblaApi] = useEmblaCarousel({
         align: "start",
         slidesToScroll: 1,
         containScroll: "trimSnaps",
@@ -265,7 +265,7 @@ function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; o
             '(min-width: 1024px)': { slidesToScroll: 3 },
         }
     });
-    
+
     const [canScrollPrev, setCanScrollPrev] = useState(false);
     const [canScrollNext, setCanScrollNext] = useState(false);
 
@@ -330,7 +330,7 @@ function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; o
                 <div className="flex gap-3 sm:gap-4 lg:justify-center">
                     {items.map((item) => (
                         <div key={item.id} className="flex-none w-[75vw] sm:w-[260px] md:w-[280px] lg:w-[300px] max-w-[280px] sm:max-w-none">
-                            <Card 
+                            <Card
                                 className="group overflow-hidden rounded-2xl border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer bg-gradient-to-br from-background to-muted/30 active:scale-[0.98]"
                                 onClick={() => onAddToCart(item)}
                             >
@@ -341,6 +341,13 @@ function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; o
                                             src={item.imageUrl}
                                             alt={item.name}
                                             className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-500"
+                                            onError={(e) => {
+                                                // Jika gambar tidak bisa dimuat, ganti dengan placeholder
+                                                const target = e.target as HTMLImageElement;
+                                                target.onerror = null; // Hindari loop error
+                                                target.src = `https://placehold.co/300x200?text=${encodeURIComponent(item.name)}`;
+                                                target.alt = `No image available for ${item.name}`;
+                                            }}
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-muted/30 flex items-center justify-center">
@@ -355,7 +362,7 @@ function MenuCarousel({ items, onAddToCart }: { items: MenuItemWithCategory[]; o
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 {/* Content */}
                                 <CardContent className="p-3 sm:p-4">
                                     <h3 className="font-bold text-base sm:text-lg text-foreground group-hover:text-primary transition-colors duration-300 line-clamp-1 mb-1.5 sm:mb-2">
