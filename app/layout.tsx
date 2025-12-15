@@ -21,7 +21,7 @@ const parkinsans = Parkinsans({
 });
 
 export const metadata: Metadata = {
-  title: "Restoran Rz - Manajemen Restoran Modern",
+  title: "Restoran Rz",
   description:
     "Sistem manajemen restoran dengan pemesanan online, stok, dan kasir.",
 };

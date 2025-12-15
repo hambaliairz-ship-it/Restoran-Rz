@@ -6,6 +6,7 @@ import { signOut } from "@/lib/auth-client"
 import {
   IconCreditCard,
   IconDotsVertical,
+  IconLanguage,
   IconLogout,
   IconNotification,
   IconUserCircle,
@@ -31,6 +32,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useLanguage } from "@/components/providers/language-provider";
 
 export function NavUser({
   user,
@@ -44,6 +46,7 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const router = useRouter()
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const { setLocale, locale } = useLanguage();
 
   const handleSignOut = async () => {
     setIsSigningOut(true)
@@ -116,6 +119,10 @@ export function NavUser({
               <DropdownMenuItem>
                 <IconNotification />
                 Notifications
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}>
+                <IconLanguage className="mr-2 h-4 w-4" />
+                {locale === 'id' ? 'English' : 'Bahasa Indonesia'}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
