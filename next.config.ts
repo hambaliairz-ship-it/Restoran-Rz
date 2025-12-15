@@ -1,6 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+      allowedOrigins: [
+        'restoran-nzan.netlify.app',
+        'restoran-rz.netlify.app',
+        'localhost:3000',
+      ],
+    },
+  },
   images: {
     remotePatterns: [
       {
