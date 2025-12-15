@@ -65,6 +65,13 @@ export async function createMenuItem(data: {
   isAvailable?: boolean;
 }) {
   try {
+    const saKeyLength = process.env.NEXT_SERVER_ACTIONS_ENCRYPTION_KEY?.length;
+    if (!saKeyLength || saKeyLength < 32) {
+      console.error('Server Action key invalid or missing. Length:', saKeyLength);
+      throw new Error('Konfigurasi server action tidak valid (encryption key).');
+    }
+    console.log('Server Action key length OK:', saKeyLength, 'NETLIFY:', process.env.NETLIFY, 'NODE_ENV:', process.env.NODE_ENV);
+
     console.log('Step 1: createMenuItem function entered');
     console.log('Raw data received:', {
       name: data.name ? 'present' : 'missing',
