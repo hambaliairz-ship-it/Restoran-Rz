@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { categories, menuItems, orderItems, orders, payments } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
+import { uploadImage } from '@/lib/cloudinary';
 
 export async function getCategories() {
   try {
@@ -130,13 +131,27 @@ export async function createMenuItem(data: {
     // Validasi isAvailable
     const availableValue = data.isAvailable ?? true;
 
+    // Upload image to Cloudinary if provided
+    let finalImageUrl: string | null = null;
+    if (data.imageUrl) {
+      console.log('Step 4.5: Uploading image to Cloudinary...');
+      try {
+        finalImageUrl = await uploadImage(data.imageUrl);
+        console.log('Step 4.6: Image uploaded successfully:', finalImageUrl);
+      } catch (uploadError) {
+        console.error('Cloudinary upload failed:', uploadError);
+        // Menambahkan prefiks error untuk konsistensi pesan error
+        throw new Error(`Gagal upload gambar: ${uploadError instanceof Error ? uploadError.message : 'Unknown error'}`);
+      }
+    }
+
     // Konstruksi objek insert dengan validasi tambahan
     const insertObject = {
       name: data.name.trim(), // Pastikan nama tidak ada spasi berlebih
       description: data.description ? data.description.trim() : null,
       price: validatedPrice,
       categoryId: catIdValue,
-      imageUrl: data.imageUrl || null,
+      imageUrl: finalImageUrl, // Use Cloudinary URL instead of base64
       preparationTime: prepTimeValue,
       isAvailable: availableValue,
     };
