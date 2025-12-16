@@ -7,7 +7,8 @@ import path from 'path';
 import { parse } from 'dotenv';
 import * as schema from './schema';
 
-// Cache connection instance
+// In serverless environments, connections are cached differently
+// Neon's serverless driver handles connection pooling internally
 let cachedDb: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePg> | null = null;
 
 // Load local env manually if running locally outside of Next.js context
@@ -39,7 +40,9 @@ const isServerlessEnv = typeof process.env.VERCEL !== 'undefined' ||
 const isProduction = process.env.NODE_ENV === 'production' || isServerlessEnv;
 
 export const getDb = () => {
-  if (!cachedDb) {
+  // For serverless environments, we still create a new instance each time
+  // but Neon's driver handles connection pooling internally
+  if (!cachedDb || !isProduction) {
     cachedDb = isProduction
       ? drizzleNeon(neon(databaseUrl), { schema })
       : drizzlePg(databaseUrl, { schema });

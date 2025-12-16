@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from '@/db';
-import { orders, orderItems, menuItems, orderStatusEnum } from '@/db/schema';
+import { orders, orderItems, menuItems, orderStatusEnum, payments, ingredients, stockTransactions, categories } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
 import { withRateLimit } from '@/lib/rate-limiter';

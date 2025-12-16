@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from '@/db';
-import { categories, menuItems, orderItems, orders, payments } from '@/db/schema';
+import { categories, menuItems, orderItems, orders, payments, ingredients, stockTransactions } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { uploadImage } from '@/lib/cloudinary';

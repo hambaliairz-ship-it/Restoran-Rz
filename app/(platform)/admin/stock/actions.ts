@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from '@/db';
-import { ingredients, stockTransactions } from '@/db/schema';
+import { ingredients, stockTransactions, menuItems, orders, orderItems, payments } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

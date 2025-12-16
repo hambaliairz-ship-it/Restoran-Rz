@@ -1,7 +1,7 @@
 'use server';
 
 import { getDb } from '@/db';
-import { orders, orderItems, menuItems, orderStatusEnum } from '@/db/schema';
+import { orders, orderItems, menuItems, orderStatusEnum, payments } from '@/db/schema';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

@@ -1,5 +1,5 @@
 import { getDb } from '@/db';
-import { orders } from '@/db/schema';
+import { orders, payments } from '@/db/schema';
 import { eq, desc, not } from 'drizzle-orm';
 
 export async function getUnpaidOrders() {
