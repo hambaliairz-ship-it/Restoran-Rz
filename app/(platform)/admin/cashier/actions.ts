@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { orders, payments, orderItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -19,6 +19,7 @@ export async function processPayment(data: {
   }
 
   try {
+    const db = getDb();
     await db.transaction(async (tx) => {
       // 1. Create Payment Record
       await tx.insert(payments).values({
@@ -44,15 +45,16 @@ export async function processPayment(data: {
 }
 
 export async function deleteOrder(orderId: string) {
+  const db = getDb();
   // 1. Hapus payments yang terkait
   await db.delete(payments).where(eq(payments.orderId, orderId));
-  
+
   // 2. Hapus order items yang terkait
   await db.delete(orderItems).where(eq(orderItems.orderId, orderId));
-  
+
   // 3. Hapus order
   await db.delete(orders).where(eq(orders.id, orderId));
-  
+
   revalidatePath('/admin/cashier');
   revalidatePath('/admin/kitchen');
   revalidatePath('/dashboard');

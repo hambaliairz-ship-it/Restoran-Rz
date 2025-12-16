@@ -1,13 +1,21 @@
 'use server';
 
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { categories, menuItems, orders, orderItems } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
+import { setCache, getCache } from '@/lib/cache';
 
 export async function getMenuData() {
+  // Try to get from cache first
+  const cachedData = getCache<{ categories: any[]; items: any[] }>('menu-data');
+  if (cachedData) {
+    return cachedData;
+  }
+
+  const db = getDb();
   const allCategories = await db.select().from(categories);
-  
+
   // Get all available menu items with their category
   const items = await db.query.menuItems.findMany({
     where: eq(menuItems.isAvailable, true),
@@ -16,7 +24,12 @@ export async function getMenuData() {
     }
   });
 
-  return { categories: allCategories, items };
+  const data = { categories: allCategories, items };
+
+  // Cache for 5 minutes
+  setCache('menu-data', data, 300000);
+
+  return data;
 }
 
 export type MenuData = Awaited<ReturnType<typeof getMenuData>>;
@@ -29,6 +42,8 @@ export async function createOrder(data: {
     items: { menuItemId: string; quantity: number; price: number; notes?: string }[];
     totalAmount: number;
 }) {
+    // Clear menu cache after creating order
+    const db = getDb();
     let orderId = '';
 
     await db.transaction(async (tx) => {
@@ -58,7 +73,13 @@ export async function createOrder(data: {
         );
     });
 
+    // Clear menu cache after order is placed
     if (orderId) {
+        // You might want to clear other relevant caches here
+        // For example, dashboard stats cache if needed
+        import('@/lib/cache').then(({ clearCache }) => {
+            clearCache();
+        }).catch(console.error);
         redirect(`/order/${orderId}`);
     }
 }

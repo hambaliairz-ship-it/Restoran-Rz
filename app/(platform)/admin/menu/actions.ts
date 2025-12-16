@@ -1,6 +1,6 @@
 'use server';
 
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { categories, menuItems, orderItems, orders, payments } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
@@ -8,6 +8,7 @@ import { uploadImage } from '@/lib/cloudinary';
 
 export async function getCategories() {
   try {
+    const db = getDb();
     const result = await db.select().from(categories);
     return result;
   } catch (error) {
@@ -22,6 +23,7 @@ export async function getCategories() {
 
 export async function getMenuItems() {
   try {
+    const db = getDb();
     // Dapatkan semua menu items
     const menuItemsResult = await db.select().from(menuItems)
       .orderBy(desc(menuItems.createdAt));
@@ -44,6 +46,7 @@ export async function getMenuItems() {
 
 export async function createCategory(data: { name: string; description?: string }) {
   try {
+    const db = getDb();
     await db.insert(categories).values({
       name: data.name,
       description: data.description,
@@ -120,6 +123,7 @@ export async function createMenuItem(data: {
     // Validasi categoryId
     let catIdValue: string | null = null;
     if (data.categoryId) {
+      const db = getDb();
       // Lakukan pengecekan apakah kategori ada di database
       const categoryExists = await db.select().from(categories).where(eq(categories.id, data.categoryId));
       if (categoryExists.length === 0) {
@@ -159,6 +163,7 @@ export async function createMenuItem(data: {
 
     console.log('Step 6: About to execute database insertion');
 
+    const db = getDb();
     // Lakukan insert dengan error handling lebih rinci
     try {
       const result = await db.insert(menuItems).values(insertObject);
@@ -259,6 +264,7 @@ export async function updateMenuItem(
       updateData.price = validateAndConvertPrice(data.price);
     }
 
+    const db = getDb();
     await db.update(menuItems).set(updateData).where(eq(menuItems.id, id));
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
@@ -270,6 +276,7 @@ export async function updateMenuItem(
 
 export async function deleteMenuItem(id: string) {
   try {
+    const db = getDb();
     // 1. Cari semua order_items yang terkait dengan menu ini
     const relatedOrderItems = await db
       .select({ orderId: orderItems.orderId })
@@ -312,6 +319,7 @@ export async function deleteMenuItem(id: string) {
 
 export async function deleteCategory(id: string) {
   try {
+    const db = getDb();
     // Set menu items in this category to null first
     await db.update(menuItems).set({ categoryId: null }).where(eq(menuItems.categoryId, id));
     await db.delete(categories).where(eq(categories.id, id));
@@ -322,3 +330,4 @@ export async function deleteCategory(id: string) {
     throw new Error(`Gagal menghapus kategori: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
+

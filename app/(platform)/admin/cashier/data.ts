@@ -1,8 +1,9 @@
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { orders } from '@/db/schema';
 import { eq, desc, not } from 'drizzle-orm';
 
 export async function getUnpaidOrders() {
+  const db = getDb();
   // Get all active orders (not cancelled)
   const activeOrders = await db.query.orders.findMany({
     where: not(eq(orders.status, 'cancelled')),

@@ -1,9 +1,10 @@
 'use server';
 
-import { db } from '@/db';
+import { getDb } from '@/db';
 import { orders, orderItems, menuItems, orderStatusEnum } from '@/db/schema';
 import { revalidatePath } from 'next/cache';
 import { eq } from 'drizzle-orm';
+import { withRateLimit } from '@/lib/rate-limiter';
 
 // Define a specific type for the order input
 export type CreateOrderInput = {
@@ -19,6 +20,8 @@ export type CreateOrderInput = {
 };
 
 export async function createOrder(data: CreateOrderInput) {
+  const db = getDb();
+
   try {
     // Generate a simple order number (you might want a more robust system in prod)
     const orderNumber = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
@@ -48,10 +51,13 @@ export async function createOrder(data: CreateOrderInput) {
 
     revalidatePath('/admin/kitchen');
     revalidatePath('/admin/cashier');
-    
+
     return { success: true, orderId: newOrder.id, orderNumber: newOrder.orderNumber };
   } catch (error) {
     console.error('Error creating order detailed:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Failed to place order' };
   }
 }
+
+// Apply rate limiting
+export const createOrderWithRateLimit = withRateLimit(createOrder, 5, 300000); // 5 orders per 5 minutes per IP

@@ -7,6 +7,9 @@ import path from 'path';
 import { parse } from 'dotenv';
 import * as schema from './schema';
 
+// Cache connection instance
+let cachedDb: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePg> | null = null;
+
 // Load local env manually if running locally outside of Next.js context
 // This ensures scripts like seed.ts pick up .env.local
 if (process.env.NODE_ENV !== 'production') {
@@ -35,6 +38,14 @@ const isServerlessEnv = typeof process.env.VERCEL !== 'undefined' ||
 // Use Neon serverless driver for production (Vercel/Netlify) and serverless environments, pg for local development
 const isProduction = process.env.NODE_ENV === 'production' || isServerlessEnv;
 
-export const db = isProduction
-  ? drizzleNeon(neon(databaseUrl), { schema })
-  : drizzlePg(databaseUrl, { schema });
+export const getDb = () => {
+  if (!cachedDb) {
+    cachedDb = isProduction
+      ? drizzleNeon(neon(databaseUrl), { schema })
+      : drizzlePg(databaseUrl, { schema });
+  }
+  return cachedDb;
+};
+
+// For direct access (backward compatibility)
+export const db = getDb();
