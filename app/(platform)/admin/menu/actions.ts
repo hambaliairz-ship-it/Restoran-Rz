@@ -4,7 +4,6 @@ import { getDb } from '@/db';
 import { categories, menuItems } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
-import { uploadImage } from '@/lib/cloudinary';
 
 export async function getCategories() {
   try {
@@ -12,7 +11,6 @@ export async function getCategories() {
     const result = await db.select().from(categories);
     return result;
   } catch (error) {
-    console.error('Error fetching categories:', error);
     throw new Error(`Gagal mengambil kategori: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -35,7 +33,6 @@ export async function getMenuItems() {
 
     return menuItemsWithCategories;
   } catch (error) {
-    console.error('Error fetching menu items:', error);
     throw new Error(`Gagal mengambil menu: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -50,7 +47,6 @@ export async function createCategory(data: { name: string; description?: string 
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
   } catch (error) {
-    console.error('Error creating category:', error);
     throw new Error(`Gagal menambahkan kategori: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -60,7 +56,7 @@ export async function createMenuItem(data: {
   description?: string;
   price: string;
   categoryId?: string;
-  imageUrl?: string;
+  imageUrl?: string; // This will now be a complete URL from Cloudinary
   preparationTime?: number;
   isAvailable?: boolean;
 }) {
@@ -102,24 +98,16 @@ export async function createMenuItem(data: {
     // Validasi isAvailable
     const availableValue = data.isAvailable ?? true;
 
-    // Upload image to Cloudinary if provided
-    let finalImageUrl: string | null = null;
-    if (data.imageUrl) {
-      // Check payload size hard limit (e.g. 100KB for text string)
-      if (data.imageUrl.length > 102400) {
-        throw new Error('Ukuran gambar terlalu besar. Mohon upload gambar yang lebih kecil.');
-      }
+    // Now we just store the image URL directly - no server-side upload processing
+    const finalImageUrl: string | null = data.imageUrl || null;
 
-      finalImageUrl = await uploadImage(data.imageUrl);
-    }
-
-    // Konstruksi objek insert dengan validasi tambahan
+    // Konstruksi objek insert
     const insertObject = {
-      name: data.name.trim(), // Pastikan nama tidak ada spasi berlebih
+      name: data.name.trim(),
       description: data.description ? data.description.trim() : null,
       price: validatedPrice,
       categoryId: catIdValue,
-      imageUrl: finalImageUrl, // Use Cloudinary URL instead of base64
+      imageUrl: finalImageUrl, // Store the Cloudinary URL directly
       preparationTime: prepTimeValue,
       isAvailable: availableValue,
     };
@@ -130,8 +118,6 @@ export async function createMenuItem(data: {
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
   } catch (error) {
-    console.error('Error in createMenuItem:', error);
-
     // Cek apakah error terkait dengan struktur database
     if (error instanceof Error && error.message.includes('relation "menu_items" does not exist')) {
       throw new Error('Struktur database tidak lengkap. Silakan hubungi administrator untuk menjalankan migrasi database.');
@@ -180,7 +166,7 @@ export async function updateMenuItem(
     description?: string;
     price?: string;
     categoryId?: string;
-    imageUrl?: string;
+    imageUrl?: string; // Updated to accept Cloudinary URL directly
     preparationTime?: number;
     isAvailable?: boolean;
   }
@@ -197,7 +183,6 @@ export async function updateMenuItem(
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
   } catch (error) {
-    console.error('Error updating menu item:', error);
     throw new Error(`Gagal memperbarui menu: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -211,7 +196,6 @@ export async function deleteMenuItem(id: string) {
     revalidatePath('/menu');
     revalidatePath('/dashboard');
   } catch (error) {
-    console.error('Error deleting menu item:', error);
     throw new Error(`Gagal menghapus menu: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
@@ -225,7 +209,6 @@ export async function deleteCategory(id: string) {
     revalidatePath('/admin/menu');
     revalidatePath('/menu');
   } catch (error) {
-    console.error('Error deleting category:', error);
     throw new Error(`Gagal menghapus kategori: ${error instanceof Error ? error.message : 'Database error'}`);
   }
 }
