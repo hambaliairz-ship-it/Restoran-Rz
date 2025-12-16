@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db';
 import { ingredients, stockTransactions, menuItems, orders, orderItems, payments } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function getIngredients() {
@@ -14,30 +14,33 @@ export type Ingredient = Awaited<ReturnType<typeof getIngredients>>[number];
 
 export async function getStockTransactions() {
   const db = getDb();
-  // Force explicit typing if needed or ensure logic handles potential nulls
-  const transactions = await db.query.stockTransactions.findMany({
-      orderBy: [desc(stockTransactions.createdAt)],
-      with: {
-          ingredient: true
-      },
-      limit: 20
-  });
-  return transactions as Array<{
-      id: string;
-      ingredientId: string | null;
-      transactionType: "in" | "out" | "adjustment" | null;
-      quantity: string;
-      reason: string | null;
-      createdAt: Date | null;
-      ingredient: {
-          id: string;
-          name: string;
-          unit: string;
-          currentStock: string | null;
-          minStock: string | null;
-          costPerUnit: string;
-      } | null;
-  }>;
+
+  // Get stock transactions with related ingredients
+  const rawTransactions = await db.select()
+      .from(stockTransactions)
+      .orderBy(desc(stockTransactions.createdAt))
+      .leftJoin(ingredients, eq(stockTransactions.ingredientId, ingredients.id))
+      .limit(20);
+
+  // Transform the results to match expected format
+  const transactions = rawTransactions.map(transaction => ({
+    id: transaction.stock_transactions.id,
+    ingredientId: transaction.stock_transactions.ingredientId,
+    transactionType: transaction.stock_transactions.transactionType,
+    quantity: transaction.stock_transactions.quantity,
+    reason: transaction.stock_transactions.reason,
+    createdAt: transaction.stock_transactions.createdAt,
+    ingredient: transaction.ingredients ? {
+      id: transaction.ingredients.id,
+      name: transaction.ingredients.name,
+      unit: transaction.ingredients.unit,
+      currentStock: transaction.ingredients.currentStock,
+      minStock: transaction.ingredients.minStock,
+      costPerUnit: transaction.ingredients.costPerUnit,
+    } : null
+  }));
+
+  return transactions;
 }
 
 export async function addIngredient(data: { name: string; unit: string; costPerUnit: number; minStock: number }) {
@@ -71,9 +74,11 @@ export async function addStockTransaction(data: {
     });
 
     // 2. Update current stock
-    const ingredient = await tx.query.ingredients.findFirst({
-        where: eq(ingredients.id, ingredientId)
-    });
+    const ingredientResult = await tx.select()
+        .from(ingredients)
+        .where(eq(ingredients.id, ingredientId));
+
+    const ingredient = ingredientResult[0];
 
     if (!ingredient) throw new Error("Ingredient not found");
 

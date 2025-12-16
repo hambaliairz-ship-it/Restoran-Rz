@@ -36,17 +36,28 @@ export async function getDashboardStats() {
     );
 
     // 5. Recent Orders
-    const recentOrders = await db.query.orders.findMany({
-        orderBy: [desc(orders.createdAt)],
-        limit: 5,
-        with: {
-            items: {
-                with: {
-                    menuItem: true
-                }
-            }
-        }
+    const recentOrdersData = await db.select()
+        .from(orders)
+        .orderBy(desc(orders.createdAt))
+        .limit(5);
+
+    // Then, fetch the related items and menu items for each order
+    const recentOrdersPromises = recentOrdersData.map(async (order) => {
+        const items = await db.select()
+            .from(orderItems)
+            .where(eq(orderItems.orderId, order.id))
+            .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id));
+
+        return {
+            ...order,
+            items: items.map(item => ({
+                ...item.order_items,
+                menuItem: item.menu_items
+            }))
+        };
     });
+
+    const recentOrders = await Promise.all(recentOrdersPromises);
 
     return {
         ordersToday: ordersCount[0].count,

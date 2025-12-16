@@ -13,19 +13,30 @@ export async function getKitchenOrders() {
   // Exclude completed or cancelled unless needed for history
   const kitchenStatuses: OrderStatus[] = ['pending', 'confirmed', 'preparing', 'ready'];
 
-  const ordersData = await db.query.orders.findMany({
-    where: inArray(orders.status, kitchenStatuses),
-    orderBy: [desc(orders.createdAt)],
-    with: {
-      items: {
-        with: {
-          menuItem: true
-        }
-      }
-    }
+  const ordersData = await db.select()
+    .from(orders)
+    .where(inArray(orders.status, kitchenStatuses))
+    .orderBy(desc(orders.createdAt));
+
+  // Then, fetch the related items and menu items for each order
+  const ordersWithItemsPromises = ordersData.map(async (order) => {
+    const items = await db.select()
+      .from(orderItems)
+      .where(eq(orderItems.orderId, order.id))
+      .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id));
+
+    return {
+      ...order,
+      items: items.map(item => ({
+        ...item.order_items,
+        menuItem: item.menu_items
+      }))
+    };
   });
 
-  return ordersData;
+  const ordersWithItems = await Promise.all(ordersWithItemsPromises);
+
+  return ordersWithItems;
 }
 
 export async function updateOrderStatus(orderId: string, newStatus: OrderStatus) {

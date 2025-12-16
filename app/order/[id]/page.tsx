@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { orders } from '@/db/schema';
+import { getDb } from '@/db';
+import { orders, orderItems, menuItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,16 +16,28 @@ interface PageProps {
 export default async function OrderConfirmationPage({ params }: PageProps) {
     const { id } = await params;
 
-    const order = await db.query.orders.findFirst({
-        where: eq(orders.id, id),
-        with: {
-            items: {
-                with: {
-                    menuItem: true
-                }
-            }
-        }
-    });
+    const db = getDb();
+    const orderResult = await db.select()
+        .from(orders)
+        .where(eq(orders.id, id));
+
+    if (!orderResult || orderResult.length === 0) return notFound();
+
+    const orderData = orderResult[0];
+
+    // Get order items with menu items
+    const orderItemsWithMenu = await db.select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderData.id))
+        .leftJoin(menuItems, eq(orderItems.menuItemId, menuItems.id));
+
+    const order = {
+        ...orderData,
+        items: orderItemsWithMenu.map(item => ({
+            ...item.order_items,
+            menuItem: item.menu_items
+        }))
+    };
 
     if (!order) return notFound();
 

@@ -2,7 +2,7 @@
 
 import { getDb } from '@/db';
 import { categories, menuItems, orders, orderItems, payments, ingredients, stockTransactions, orderStatusEnum } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import { setCache, getCache } from '@/lib/cache';
 
@@ -17,12 +17,16 @@ export async function getMenuData() {
   const allCategories = await db.select().from(categories);
 
   // Get all available menu items with their category
-  const items = await db.query.menuItems.findMany({
-    where: eq(menuItems.isAvailable, true),
-    with: {
-        category: true
-    }
-  });
+  const rawItems = await db.select()
+    .from(menuItems)
+    .where(eq(menuItems.isAvailable, true))
+    .leftJoin(categories, eq(menuItems.categoryId, categories.id));
+
+  // Transform results to match expected format
+  const items = rawItems.map(item => ({
+    ...item.menu_items,
+    category: item.categories
+  }));
 
   const data = { categories: allCategories, items };
 
